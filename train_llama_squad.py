@@ -45,6 +45,7 @@ from llama_squad import SquadDataCollator
 # For models that have `config.pretraining_tp > 1` install:
 # pip install git+https://github.com/huggingface/transformers.git
 
+use_flash_attention = True
 
 @dataclass
 class ScriptArguments:
@@ -65,7 +66,7 @@ class ScriptArguments:
     lora_alpha: Optional[int] = field(default=16)
     lora_dropout: Optional[float] = field(default=0.1)
     lora_r: Optional[int] = field(default=64)
-    max_seq_length: Optional[int] = field(default=512)
+    max_seq_length: Optional[int] = field(default=32768)
     model_name: Optional[str] = field(
         default="meta-llama/Llama-2-7b-hf",
         metadata={
@@ -101,7 +102,7 @@ class ScriptArguments:
         metadata={"help": "Enables fp16 training."},
     )
     bf16: Optional[bool] = field(
-        default=False,
+        default=True,
         metadata={"help": "Enables bf16 training."},
     )
     packing: Optional[bool] = field(
@@ -184,8 +185,9 @@ def create_and_prepare_model(args):
         args.model_name,
         quantization_config=bnb_config,
         device_map=device_map,
-        use_auth_token=True,
+        # use_auth_token=True,
         trust_remote_code=True,
+        use_flash_attention_2=use_flash_attention,
     )
 
     # check: https://github.com/huggingface/transformers/pull/24906
@@ -198,6 +200,8 @@ def create_and_prepare_model(args):
         bias="none",
         task_type="CAUSAL_LM",
     )
+
+    model = get_peft_model(model, peft_config)
 
     tokenizer = AutoTokenizer.from_pretrained(
         script_args.model_name, trust_remote_code=True
@@ -232,19 +236,19 @@ dataset = load_from_disk(script_args.dataset_name)["train"]
 tokenizer.padding_side = "right"
 
 # new tokens
-start_tokens = ["<answer_start>"]
-end_tokens = ["<answer_end>"]
+# start_tokens = ["<answer_start>"]
+# end_tokens = ["<answer_end>"]
 
 # check if the tokens are already in the vocabulary
-start_tokens = set(start_tokens) - set(tokenizer.vocab.keys())
-end_tokens = set(end_tokens) - set(tokenizer.vocab.keys())
+# start_tokens = set(start_tokens) - set(tokenizer.vocab.keys())
+# end_tokens = set(end_tokens) - set(tokenizer.vocab.keys())
 
 # add the tokens to the tokenizer vocabulary
-tokenizer.add_tokens(list(start_tokens))
-tokenizer.add_tokens(list(end_tokens))
+# tokenizer.add_tokens(list(start_tokens))
+# tokenizer.add_tokens(list(end_tokens))
 
 # add new, random embeddings for the new tokens
-model.resize_token_embeddings(len(tokenizer))
+# model.resize_token_embeddings(len(tokenizer))
 
 # answer_start_token_id = tokenizer.convert_tokens_to_ids("<answer_start>")
 # answer_end_token_id = tokenizer.convert_tokens_to_ids("<answer_end>")

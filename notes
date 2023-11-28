@@ -1,0 +1,7 @@
+pip install flash-attn --no-build-isolation
+
+export HUGGING_FACE_HUB_TOKEN="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"
+
+python -c "import torch; assert torch.cuda.get_device_capability()[0] >= 8, 'Hardware not supported for Flash Attention'"
+pip install ninja packaging
+MAX_JOBS=4 pip install flash-attn --no-build-isolation
