@@ -1,0 +1,6 @@
+__pycache__/
+results/
+wandb/
+data/
+lm_cache/
+.env
