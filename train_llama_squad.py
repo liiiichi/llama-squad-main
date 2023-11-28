@@ -231,6 +231,24 @@ dataset = load_from_disk(script_args.dataset_name)["train"]
 # Fix weird overflow issue with fp16 training
 tokenizer.padding_side = "right"
 
+# new tokens
+start_tokens = ["<answer_start>"]
+end_tokens = ["<answer_end>"]
+
+# check if the tokens are already in the vocabulary
+start_tokens = set(start_tokens) - set(tokenizer.vocab.keys())
+end_tokens = set(end_tokens) - set(tokenizer.vocab.keys())
+
+# add the tokens to the tokenizer vocabulary
+tokenizer.add_tokens(list(start_tokens))
+tokenizer.add_tokens(list(end_tokens))
+
+# add new, random embeddings for the new tokens
+model.resize_token_embeddings(len(tokenizer))
+
+# answer_start_token_id = tokenizer.convert_tokens_to_ids("<answer_start>")
+# answer_end_token_id = tokenizer.convert_tokens_to_ids("<answer_end>")
+
 data_collator = SquadDataCollator(tokenizer=tokenizer, mlm=False)
 
 trainer = SFTTrainer(
