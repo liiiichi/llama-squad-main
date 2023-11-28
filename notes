@@ -1,13 +1,22 @@
+#!/bin/bash
+
+# Update package lists
+apt-get update
+
+# Install vim
+apt-get install -y vim
+
+# Set CUDA_HOME environment variable
 export CUDA_HOME=/usr/local/cuda-11.8
+
+export HUGGING_FACE_HUB_TOKEN="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"
+
+# Install Python packages
 pip install -U git+https://github.com/huggingface/transformers.git
 pip install sentencepiece
 pip install ninja
 pip install flash-attn --no-build-isolation
 pip install git+https://github.com/HazyResearch/flash-attention.git#subdirectory=csrc/rotary
 
-
-export HUGGING_FACE_HUB_TOKEN="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"
-
-python -c "import torch; assert torch.cuda.get_device_capability()[0] >= 8, 'Hardware not supported for Flash Attention'"
-pip install ninja packaging
-MAX_JOBS=4 pip install flash-attn --no-build-isolation
+# Install additional requirements from requirements.txt
+pip install -r requirements.txt
