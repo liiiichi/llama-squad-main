@@ -186,7 +186,7 @@ def create_and_prepare_model(args):
         quantization_config=bnb_config,
         device_map=device_map,
         # use_auth_token=True,
-        trust_remote_code=True,
+        # trust_remote_code=False,
         use_flash_attention_2=use_flash_attention,
     )
 
@@ -201,7 +201,7 @@ def create_and_prepare_model(args):
         task_type="CAUSAL_LM",
     )
 
-    model = get_peft_model(model, peft_config)
+    # model = get_peft_model(model, peft_config)
 
     tokenizer = AutoTokenizer.from_pretrained(
         script_args.model_name, trust_remote_code=True
